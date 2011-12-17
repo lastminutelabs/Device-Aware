@@ -1,7 +1,7 @@
 # ActAsDeviceAware
 module ActsAsDeviceAware
-  
-  
+
+
   module ActionControllerExtensions
     def self.included(base)
           @@device_atlas = DeviceAtlas.new
@@ -10,7 +10,7 @@ module ActsAsDeviceAware
     end
 
   private
-  
+
     def get_device_atlas_data
       unless request.env["HTTP_USER_AGENT"].nil?
         @device_atlas_data = properties = @@device_atlas.getProperties(@@device_atlas_tree, request.env["HTTP_USER_AGENT"].strip)
@@ -20,8 +20,8 @@ module ActsAsDeviceAware
         @device_atlas_data = {}
       end
     end
-    
+
   end
-  
-  
+
+
 end
