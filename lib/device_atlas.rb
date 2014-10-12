@@ -11,32 +11,32 @@ require 'json'
 #     tree = device_atlas.getTreeFromFile("sample/DeviceAtlas.json")
 #     properties = device_atlas.getProperties(tree, "Nokia6680...")
 #     property = device_atlas.getProperty(tree, "Nokia6680...", "displayWidth")
-# 
+#
 # Note that you should normally use the user-agent that was received in
 # the device's HTTP request. In a Rails environment, you would do this as follows:
-# 
-# 
+#
+#
 #     user_agent = request.env['HTTP_USER_AGENT']
 #     display_width = device_atlas.getPropertyAsInteger(tree, user_agent, "displayWidth")
-# 
+#
 # Author:: MTLD (dotMobi)
-# 
+#
 class DeviceAtlas
 
   class IncorrectPropertyTypeException < StandardError; end
   class InvalidPropertyException < StandardError; end
   class JsonException < StandardError; end
   class UnknownPropertyException < StandardError; end
-    
+
   attr_accessor :found_properties, :patricia, :matched_ua, :unmatched_ua
-  
+
   # Returns a tree from a JSON string
   def getTreeFromString(string)
     tree = JSON::Parser.new(string, :max_nesting => false).parse
     raise(JsonException, "Unable to load Json data.") if (tree.nil? || !tree.kind_of?(Hash))
     raise(JsonException, "Bad data loaded into the tree") unless tree.has_key?("$")
     raise(JsonException, "DeviceAtlas json file must be v0.7 or greater. Please download a more recent version.") if(tree["$"]["Ver"].to_f < 0.7)
-    
+
     pr = {}
     pn = {}
     tree['p'].each_with_index do |key,value|
@@ -55,7 +55,7 @@ class DeviceAtlas
     json = File.open(filename,"r").readlines.to_s
     getTreeFromString(json)
   end
-  
+
   # Returns the revision number of the tree
   def getTreeRevision(tree)
     _getRevisionFromKeyword(tree['$']["Rev"])
@@ -137,11 +137,11 @@ class DeviceAtlas
     matched = ""
     sought = nil
     self.found_properties = {}
-    
+
     _seekProperties(tree['t'], userAgent.strip, idProperties, sought, matched)
     properties = {}
     self.found_properties.each_pair do |id,value|
-      if typedValues 
+      if typedValues
         properties[_propertyFromId(tree, id)] = _valueAsTypedFromId(tree, value, id)
       else
         properties[_propertyFromId(tree, id)] = _valueFromId(tree, value)
@@ -154,8 +154,8 @@ class DeviceAtlas
 
   # Returns a value for the named property for this user agent.
 	# Allows the value to be typed or forced as a string.
-  def _getProperty(tree, userAgent, property, typedValue)    
-    propertyId = _idFromProperty(tree, property)  
+  def _getProperty(tree, userAgent, property, typedValue)
+    propertyId = _idFromProperty(tree, property)
     idProperties = []
     sought = {}
     sought[propertyId.to_s] = 1
@@ -163,9 +163,9 @@ class DeviceAtlas
     unmatched = ""
     self.found_properties = {}
     _seekProperties(tree['t'], userAgent.strip, idProperties, sought, matched)
-    
+
     raise(InvalidPropertyException, "The property #{property} is invalid for the User Agent:#{userAgent}") if self.found_properties.size == 0
-    
+
     if typedValue
       _valueAsTypedFromId(tree, self.found_properties[propertyId.to_s], propertyId)
     else
@@ -192,7 +192,7 @@ class DeviceAtlas
     raise(IncorrectPropertyTypeException, "#{property} is not of type #{typeName}") unless tree['pr'].has_key?(key)
   end
 
-  # Seek properties for a user agent within a node. 
+  # Seek properties for a user agent within a node.
 	# This is designed to be recursed, and only externally called with the node representing the top of the tree
   def _seekProperties(node, string, properties, sought, matched)
     unmatched = string
@@ -211,8 +211,8 @@ class DeviceAtlas
         end
       end
     end
-    if node.has_key?('c')      
-      (0..string.length+1).each do |c|    
+    if node.has_key?('c')
+      (0..string.length+1).each do |c|
         seek = string[0..c]
         # TODO for some reason the last node is an array? handle it better?
         if node['c'].kind_of?(Hash) && node['c'][seek]
@@ -226,8 +226,8 @@ class DeviceAtlas
         end
       end
     end
-  end  
-  
+  end
+
   # Returns the property value as typed
   def _valueAsTypedFromId(tree, id, propertyId)
     obj = tree['v'][id]
